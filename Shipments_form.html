@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>出貨表單</title>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(to bottom right, #eef3f9, #dde6f1);
+      color: #2c3e50;
+    }
+    .container { display: flex; gap: 20px; padding-top: 20px; }
+    .sidebar {
+      width: 180px;
+      background: linear-gradient(to bottom left, #1d3557, #2a9d8f);
+      color: #fff;
+      padding: 20px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 12px;
+      margin-left: 20px;
+    }
+    .sidebar button {
+      width: 160px;
+      height: 48px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      border-radius: 10px;
+      background-color: #1abc9c;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgb(0, 0, 0,0.1); /*加陰影*/
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    .sidebar button:hover {
+      background-color: #16a085; /* 深一點的綠色 */
+      transform: translateY(-2px); /* ✅ 向上浮起 */
+    }
+    #printButton {
+      background-color: white;
+      color: #2c3e50;
+      border: 2px solid #2c3e50;
+      font-weight: bold;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    #printButton:hover {
+      background-color: #f2f2f2;
+      transform: translateY(-2px);
+    }
+    #printButton_2 {
+      background-color: white;
+      color: #2c3e50;
+      border: 2px solid #2c3e50;
+      font-weight: bold;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+    #printButton_2:hover {
+      background-color: #f2f2f2;
+      transform: translateY(-2px);
+    }
+    .main {
+      flex: 1;
+      padding: 0 30px 30px 30px;
+      background-color: #f7f9fb;
+    }
+    .section {
+      background: #fff;
+      padding: 24px;
+      margin-bottom: 40px;
+      border-radius: 12px;
+      border-left: 6px solid #3498db;
+    }
+    .form-header {
+      background: linear-gradient(to left, #1d3557, #2a9d8f);
+      color: white;
+      padding: 20px;
+      border-radius: 12px 12px 0 0;
+      text-align: center;
+    }
+    .form-header h2 { margin: 0; font-size: 24px; font-weight: bold; color: #90f7ec; }
+    .form-header p { margin-top: 6px; font-size: 14px; color: #d0e7e5; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    table th, table td {
+      border: 1px solid #dce3e8;
+      padding: 8px;
+      text-align: center;
+    }
+    table th { background-color: #eaf3fb; font-weight: 600; }
+    input { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; box-sizing: border-box; }
+    input[type="date"] { text-align: center; }
+    .submit-btn {
+      background-color: #2ecc71;
+      color: #fff;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .submit-btn:hover {
+      background-color: #27ae60; /* 深一點的綠色 */
+      transform: translateY(-2px); /* 稍微浮起 */
+    }
+    button {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button[type="button"] {
+      background-color: #3498db;
+      color: white;
+    }
+    button[type="button"]:hover {
+      background-color: #2980b9;
+    }
+    .delete-btn {
+      background-color: #e74c3c !important;
+      color: white;
+    }
+    .delete-btn {
+      background-color: #c0392b !important;
+    }
+    .add-btn {
+      margin-top: 16px;
+      background-color: #3498db;
+      color: white;
+      font-weight: bold;
+      padding: 6px 14px;
+      border-radius: 8px;
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 4px solid #ddd;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+    .spinner-small {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid white;
+      border-top: 2px solid #2ecc71;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+   select {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    box-sizing: border-box;
+    background-color: #fff;
+   }
+  .table-sent-success {
+    background-color: #e0f7e9 !important;
+    transition: background-color 0.3s ease;
+  }
+  .input-wrapper {
+    position: relative;
+  }
+  .input-wrapper input {
+    padding-left: 18px;
+    text-align: right;
+  }
+  .input-wrapper::before {
+    content: "$";
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #555;
+  }
+  input[name="qty"],input[name="price"] {
+    text-align: center;
+  }
+  .footer { /*故地頁尾*/
+  position: absolute;
+  bottom: 24px;
+  left: 36px;
+  right: 36px;
+}
+  </style>
+</head>
+<body>
+  <div id="loadingOverlay" style="
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: #3498db;
+    font-family: 'Segoe UI', sans-serif;
+    ">
+    <div class="spinner" style="margin-bottom: 10px;"></div>
+    資料載入中...
+  </div>
+  <div class="form-header">
+    <h2>瑞鑫電子科技有限公司</h2>
+    <p>📋 出貨表單</p>
+  </div>
+  <div class="container">
+    <div class="sidebar">
+      <button onclick="resetForm()">🔄 重新整理</button>
+      <button id="printButton" onclick="printOnly()">🖨️ 三聯單列印</button>
+      <button id="printButton_2" onclick="printShipmentTable()">📄 紙本列印(A4)</button>
+      <button onclick="downloadPDF()">💾 存檔PDF</button>
+    </div>
+    <div class="main">
+      <form>
+        <div class="section">
+          <h3>🚚 出貨單主資料</h3>
+          <table>
+            <tr>
+              <th style="width: 20%;">出貨日期</th>
+              <th style="width: 30%;">廠商名稱</th>
+              <th style="width: 30%;">出貨單號</th>
+              <th style="width: 20%;">備註</th>
+            </tr>
+            <tr>
+              <td><input type="date" id="shipment_date" required></td>
+              <td>
+                <select id="customer_select" required style="width: 100%;">
+                <option value="">請選擇客戶名稱</option>
+              </select>
+              </td>
+              <td><input type="text" id="shipment_id" readonly style="background-color: #eee;"></td>
+              <td><input type="text" id="shipment_note" placeholder="備註（可空）"></td>
+            </tr>
+          </table>
+        </div>
+        <div>
+          <h3>📦 出貨明細</h3>
+          <table id="detailTable">
+            <thead>
+              <tr>
+                <th style="width: 16%;">品號</th>
+                <th style="width: 28%;">品名</th>
+                <th style="width: 10%;">數量</th>
+                <th style="width: 12%;">單價</th>
+                <th style="width: 14%;">小計</th>
+                <th style="width: 15%;">備註</th>
+                <th style="width: 5%;">刪除</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><select name="item_code" class="item_code_select">
+                  <option value="">請選擇品號</option>
+                </select>
+              </td>
+                <td><input type="text" name="item_name"></td>
+                <td><input type="number" name="qty" oninput="calcSubtotal(this)"></td>
+                <td><div class="input-wrapper"><input type="number" name="price" step="0.001" oninput="calcSubtotal(this)"></div></td>
+                <td><span class="subtotal-cell">$0.00</span></td>
+                <td><input type="text" name="note"></td>
+                <td><button type="button" class="delete-btn" onclick="deleteRow(this)">✖</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <button type="button" class="add-btn" onclick="addRow()">➕ 新增一筆</button>
+        </div>
+        <button id="submitBtn" class="submit-btn" type="submit">送出出貨紀錄</button> <!-- 原本的 -->
+      </form>
+    </div>
+  </div>
+  <script>
+    const specialCustomers = ["永丞亨", "名研", "羿升", "格碩", "益鴻", "敏翔", "湧旺", "緯杰", "閱順"]; //指定客戶改欄位
+    window.onload = function () {
+      const today = new Date();
+      document.getElementById('shipment_date').value = today.toISOString().substr(0, 10);
+      loadShipmentId();
+      $('#customer_select').select2({
+        placeholder: "請選擇客戶名稱",
+        width: '100%'
+      });
+      // 載入客戶資料
+      fetch("https://script.google.com/macros/s/AKfycbwjfatjsN2yk4anpHTW19qApKsOjTj8GpCwRyFJ2dzaMgiRDzJWQkqK2CxEOwFlhUdZnQ/exec")
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === "success") {
+            const customers = data.customers || [];
+
+            const select = document.getElementById("customer_select");
+
+            customers.forEach(c => {
+              const opt = document.createElement("option");
+              opt.value = c.id; //客戶編號
+              opt.textContent = c.name;  //客戶名稱
+              select.appendChild(opt);
+            });
+
+            $('#customer_select').select2({
+              placeholder: '請選擇客戶名稱',
+              width: '100%'
+            });
+
+            document.getElementById("loadingOverlay").style.display = "none";
+
+          //當選擇廠商時，載入該廠商的出貨資料
+           $('#customer_select').on('select2:select', function (e) {
+            const selectedName = e.params.data.text;
+            const isSpecial = specialCustomers.includes(selectedName);
+            toggleSpecialColumns(isSpecial);
+            const vendorCode = e.params.data.id;
+            const itemCodeSelect = document.querySelector('select[name="item_code"]');
+            
+            $(itemCodeSelect).empty();  //先清空舊的
+            const loadingOption = new Option("載入中...","",true,true);
+            itemCodeSelect.appendChild(loadingOption);
+            $(itemCodeSelect).select2({
+              placeholder: "載入中...",
+              width: "100%"
+            });
+
+            fetch("https://script.google.com/macros/s/AKfycbwjfatjsN2yk4anpHTW19qApKsOjTj8GpCwRyFJ2dzaMgiRDzJWQkqK2CxEOwFlhUdZnQ/exec?type=item&vendor=" + vendorCode)
+              .then(res => res.json())
+              .then(data => {
+                itemCodeSelect.innerHTML = '<option value="">請選擇品號</option>'; //清空原本內容
+
+                if (data.status === "success" && Array.isArray(data.data)) {
+                   data.data.forEach(item => {
+                    const opt2 = document.createElement("option");
+                    opt2.value = item.itemCode;
+                    opt2.textContent = item.itemCode;
+                    opt2.dataset.name = item.itemName;
+                    opt2.dataset.price = item.price;
+                    itemCodeSelect.appendChild(opt2);
+                   });
+                  }
+                  //無論是否有資料，都初始化品號 Select 2
+                   $(itemCodeSelect).select2({
+                    placeholder: '請選擇品號',
+                    width: '100%',
+                    tags: true, //可自訂輸入
+                    createTag: function (params) {
+                      return {
+                        id: params.term,
+                        text: params.term,
+                        newOption: true
+                      };
+                    },
+                    templateResult: function (data) {
+                      if (data.newOption) {
+                        return $('<span><strong>➕ 新品號：</strong> ' + data.text + '</span>');
+                      }
+                      return data.text;
+                    }
+                   }).on('select2:select',function (e) {
+                    const selected = e.params.data.element;
+                    const itemName = selected.dataset.name || "";
+                    const price = selected.dataset.price || "";
+
+                    const row = itemCodeSelect.closest("tr");
+                    row.querySelector('input[name="item_name"]').value = itemName;
+                    row.querySelector('input[name="price"]').value = price;
+                   });
+              });
+          });   
+        }
+      });
+    };
+  function calcSubtotal(input) {
+    const row = input.closest("tr");
+    const qty = parseFloat(row.querySelector('input[name="qty"]').value) || 0;
+    const price = parseFloat(row.querySelector('input[name="price"]').value) || 0;
+    const subtotal =qty * price;
+
+    const subtotalCell = row.querySelector(".subtotal-cell");
+    if (subtotalCell) {
+      subtotalCell.textContent = `$${subtotal.toFixed(2)}`;
+    }
+  }
+  //指定廠商新增欄位  
+  function toggleSpecialColumns(show) {
+    const theadRow = document.querySelector("#detailTable thead tr");
+    const tbodyRows = document.querySelectorAll("#detailTable tbody tr");
+    //移除舊的欄位
+    theadRow.querySelectorAll(".po-id-th, .order-id-th").forEach(th => th.remove());
+    tbodyRows.forEach(row => {
+    row.querySelectorAll(".po-id-td, .order-id-td").forEach(td => td.remove());
+    });
+    //調整欄位大小
+    const ths = theadRow.querySelectorAll("th");
+    if (show) {
+      ths[0].style.width = "12%"; // 品號
+      ths[1].style.width = "12%"; // 品名
+      ths[2].style.width = "8%";  // 數量
+      ths[3].style.width = "8%";  // 單價
+      ths[4].style.width = "10%"; // 小計
+      ths[5].style.width = "10%"; // 備註
+      
+    } else {
+      ths[0].style.width = "16%";
+      ths[1].style.width = "28%";
+      ths[2].style.width = "10%";
+      ths[3].style.width = "12%";
+      ths[4].style.width = "14%"; 
+      ths[5].style.width = "15%";
+    }
+    // 表頭處理
+    if (show) {
+      const poTh = document.createElement("th");
+      poTh.className = "po-id-th";
+      poTh.textContent = "採購單號";
+      poTh.style.width = "12%";
+      theadRow.insertBefore(poTh, theadRow.children[6]);
+      const orderTh = document.createElement("th");
+      orderTh.className = "order-id-th";
+      orderTh.textContent = "製令單號";
+      orderTh.style.width = "12%";
+      theadRow.insertBefore(orderTh, theadRow.children[7]);
+    // 明細列處理
+      tbodyRows.forEach(row => {
+      const poTd = document.createElement("td");
+      poTd.className = "po-id-td";
+      poTd.innerHTML = '<input type="text" name="po_id">';
+      row.insertBefore(poTd, row.children[row.children.length - 1]);
+      const orderTd = document.createElement("td");
+      orderTd.className = "order-id-td";
+      orderTd.innerHTML = '<input type="text" name="order_id">';
+      row.insertBefore(orderTd, row.children[row.children.length - 1]);
+    });
+  }
+}
+
+  //新增一筆的函數
+  function addRow() {
+    const tbody = document.querySelector("#detailTable tbody");
+    const firstRow = tbody.rows[0];
+    const firstSelect = firstRow.querySelector('select[name="item_code"]'); //先解除第一列的 select2綁定
+    if (firstSelect) $(firstSelect).select2('destroy'); //除掉舊的外殼 DOM
+    const newRow = firstRow.cloneNode(true); //產生新列
+    //清空 input 欄位與小計
+    newRow.querySelectorAll("input").forEach(input => input.value = "");
+    const subtotalSpan = newRow.querySelector(".subtotal-cell");
+    if (subtotalSpan) subtotalSpan.textContent = "$0.00";
+    //處理品號欄位，清除原本select2 遺留的 DOM 結構
+    const oldSelect = newRow.querySelector('select[name="item_code"]');
+    const newSelect = document.createElement("select");
+    newSelect.name = "item_code";
+    newSelect.className = "item_code_select";
+    newSelect.innerHTML = '<option value="">載入中...</option>';
+    oldSelect.replaceWith(newSelect);
+
+    tbody.appendChild(newRow); //放入新row
+    //把原本第一列的 select2 補回來
+    if (firstSelect) {
+      $(firstSelect).select2({
+        placeholder: '請選擇品號',
+        width: '100%',
+        tags: true,
+        createTag: function (params) {
+          return { id: params.term, text: params.term, newOption: true };
+        },
+        templateResult: function (data) {
+          if (data.newOption) {
+            return $('<span><strong>➕ 新品號：</strong> ' + data.text + '</span>');
+          }
+          return data.text;
+        }
+      });
+    }   
+    const vendorCode = document.getElementById("customer_select").value; //取得目前選取的客戶編號
+    if (!vendorCode) return; //若尚未選擇客戶，就不載入
+    //呼叫 API取得品號資料
+    fetch("https://script.google.com/macros/s/AKfycbwjfatjsN2yk4anpHTW19qApKsOjTj8GpCwRyFJ2dzaMgiRDzJWQkqK2CxEOwFlhUdZnQ/exec?type=item&vendor=" + vendorCode)
+      .then(res => res.json())
+      .then(data => {
+        newSelect.innerHTML = '<option value="">請選擇品號</option>';
+        if (data.status === "success" && Array.isArray(data.data)) {
+          data.data.forEach(item => {
+            const opt3 = document.createElement("option");
+            opt3.value = item.itemCode;
+            opt3.textContent = item.itemCode;
+            opt3.dataset.name = item.itemName;
+            opt3.dataset.price = item.price;
+            newSelect.appendChild(opt3);
+          });
+        }
+        //初始化品號 select2 功能
+        $(newSelect).select2({
+          placeholder: '請選擇品號',
+          width: '100%',
+          tags: true,
+          createTag: function (params) {
+            return {
+              id: params.term,
+              text: params.term,
+              newOption: true
+            };
+          },
+          templateResult: function (data) {
+            if (data.newOption) {
+              return $('<span><strong>➕ 新品號：</strong> ' + data.text + '</span>');
+            }
+            return data.text;
+          }
+        }).on('select2:select', function (e) {
+          const selected = e.params.data.element;
+          const itemName = selected?.dataset.name || "";
+          const price = selected?.dataset.price || "";
+          const row = newSelect.closest("tr");
+          row.querySelector('input[name="item_name"]').value = itemName;
+          row.querySelector('input[name="price"]').value = price;
+        });
+      });
+    }
+
+
+  function deleteRow(button) {
+    const row = button.parentElement.parentElement;
+    const tbody = row.parentElement;
+    if (tbody.rows.length > 1) {
+      tbody.removeChild(row);
+    } else {
+      alert("⚠️ 至少要保留一筆明細");
+    }
+  }
+  /*送出出貨資料到google sheet*/
+  document.querySelector("form").addEventListener("submit", function (e) {
+  e.preventDefault();
+  
+  const rows = document.querySelectorAll("#detailTable tbody tr");
+  let validCount = 0;
+
+  rows.forEach(row => {
+      const item_code = row.querySelector('select[name="item_code"]').value.trim();
+      const item_name = row.querySelector('input[name="item_name"]').value.trim();
+      if (item_name && item_code) validCount++;
+  });
+  if (!confirm(`⚠️ 出貨項目共 ${validCount} 項，確認送出？`)) {
+    return;
+  }
+
+  const shipment_date = document.getElementById("shipment_date").value;
+  const vendor_name = document.getElementById("customer_select").selectedOptions[0].textContent;
+  const vendor_code = document.getElementById("customer_select").value; //取得廠商select選單的 value(即客戶編號)
+  const shipment_id = document.getElementById("shipment_id").value;
+  const shipment_note = document.getElementById("shipment_note").value;
+  
+  const records = [];
+
+  rows.forEach(row => {
+    const item_code = row.querySelector('select[name="item_code"]').value; 
+    const item_name = row.querySelector('input[name="item_name"]').value;
+    const qty = row.querySelector('input[name="qty"]').value;
+    const price = row.querySelector('input[name="price"]').value;
+    const subtotal = row.querySelector('.subtotal-cell')?.textContent.replace('$', '').trim() || "0";
+    const note = row.querySelector('input[name="note"]').value;
+    const po_id = row.querySelector('input[name="po_id"]')?.value || "";
+    const order_id = row.querySelector('input[name="order_id"]')?.value || "";
+
+    if (item_name && item_code) {
+      records.push({
+        shipment_date,
+        vendor_name,
+        vendor_code,
+        shipment_id,
+        shipment_note,
+        item_name,
+        item_code,
+        qty,
+        price,
+        subtotal,
+        note,
+        po_id,
+        order_id
+      });
+    }
+  });
+
+  if (records.length === 0) {
+    alert("⚠️ 請至少填寫一筆出貨明細！");
+    return;
+  }
+
+  const submitBtn = document.getElementById("submitBtn");
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<span class="spinner-small"></span>送出中...';
+
+  fetch("https://script.google.com/macros/s/AKfycbx9cO6w80lydhjg31oiurLBb0zT9hUVp9qEJ2Leq9ZBPwyuRlsEVF43rIFw9_lhll1Iqg/exec", {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ records })
+  })
+  .then(() => {
+    alert("✅ 出貨資料已送出！");
+    document.getElementById("detailTable").classList.add("table-sent-success"); //加上淺綠色背景
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "送出出貨紀錄";
+  })
+  .catch((error) => {
+    alert("❌ 發生錯誤：" + error);
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "送出出貨紀錄";
+  });
+});/*送出出貨資料到google sheet*/
+//重新整理功能
+function resetForm() {
+  document.getElementById("detailTable").classList.remove("table-sent-success"); //移除綠色背景
+  document.getElementById("shipment_note").value = "";
+  document.getElementById("shipment_date").value = new Date().toISOString().substr(0, 10);
+  document.getElementById("customer_select").selectedIndex = 0;
+  $("#customer_select").trigger("change"); //通知 select2 更新
+
+  const tbody = document.querySelector("#detailTable tbody");
+  const firstRow = tbody.rows[0];
+  //移除多餘的列
+  while (tbody.rows.length > 1) {
+    tbody.deleteRow(1);
+  }
+  firstRow.querySelectorAll("input").forEach(input => input.value = ""); //清空第一列所有 input 值
+  //清空並重建品號欄 select
+  const oldSelect = firstRow.querySelector('select[name="item_code"]');
+  const newSelect = document.createElement("select");
+  newSelect.name = "item_code";
+  newSelect.className = "item_code_select";
+  newSelect.innerHTML = '<option value="">請選擇品號</option>';
+  $(oldSelect).select2('destroy'); //移除 select2 樣式
+  oldSelect.replaceWith(newSelect); //替換DOM中原本 select
+  loadShipmentId(); //重新載入出貨單號
+}
+//取得新的出貨單號
+function loadShipmentId() {
+  fetch("https://script.google.com/macros/s/AKfycbwjfatjsN2yk4anpHTW19qApKsOjTj8GpCwRyFJ2dzaMgiRDzJWQkqK2CxEOwFlhUdZnQ/exec?type=latest_shipment_id")
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        document.getElementById("shipment_id").value = data.shipment_id;
+      }else {
+        alert("❌ 無法取得出貨單號");
+      }
+    })
+    .catch(() => {
+      alert("❌ 出貨單號 API 請求失敗");
+    });
+}
+
+//列印出貨單
+function printOnly() {
+  const shipment_date = document.getElementById("shipment_date").value;
+  const vendor_name = document.getElementById("customer_select").selectedOptions[0].textContent;
+  const shipment_id = document.getElementById("shipment_id").value;
+  const shipment_note = document.getElementById("shipment_note").value;
+  const rows = document.querySelectorAll("#detailTable tbody tr");
+
+  const itemsPerPage = 7;  //每7筆一頁
+  const totalPages = Math.ceil(rows.length / itemsPerPage); //總比數計算頁數
+
+  let fullContent = "";
+
+  for (let page = 0; page < totalPages; page++) {  //每一頁的資料從這裡抓
+    const start = page * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageRows = Array.from(rows).slice(start, end);
+
+    let tableRowsHtml = "";
+    pageRows.forEach(row => {
+      const item_code = row.querySelector('select[name="item_code"]').value; //input 改成 select
+      const item_name = row.querySelector('input[name="item_name"]').value;
+      const qty = row.querySelector('input[name="qty"]').value;
+      const price = row.querySelector('input[name="price"]').value;
+      const subtotal = row.querySelector('.subtotal-cell').textContent.replace('$', '').trim();
+      const note = row.querySelector('input[name="note"]').value;
+
+      if (item_name && item_code) {
+        tableRowsHtml += `
+          <tr>
+            <td style="text-align: left;">${item_code}</td>
+            <td style="text-align: left;">${item_name}</td>
+            <td style="text-align: right;">${qty}</td>
+            <td style="text-align: right;">${price}</td>
+            <td style="text-align: right;"><span style="padding-right: 6px;">$</span>${subtotal}</td>
+            <td style="text-align: center">${note}</td>
+          </tr>
+        `;
+      }
+    });
+
+    fullContent += `
+      <div class="print-page" style="page-break-after: always; font-family: 'PMingLiu', '標楷體', serif; font-size: 18px; color: #000; position: relative; height: 10.5cm; box-sizing: border-box;">
+        <h2 style="text-align: center; font-size: 26px; margin-bottom: 0;">瑞鑫電子</h2>
+        <div style="text-align: center; margin-top: 5px;">
+          <span style="font-size: 20px; font-weight: bold; border-bottom: 1px solid #000; display: inline-block; padding-bottom: 4px; width: 100px;">出貨單</span>
+        </div>
+        <table class="no-border" style="margin-top: 12px; margin-bottom: 8px; font-size: 16px; width: 100%;">
+          <tr>
+            <td style="width: 50%;">出貨日期：${shipment_date}</td>
+            <td>出貨單號：${shipment_id}</td>
+          </tr>
+          <tr>
+            <td>客戶名稱：${vendor_name}</td>
+            <td>備註：${shipment_note}</td>
+          </tr>
+        </table>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;" border="1">
+          <thead style="background: #eee; text-align: center;">
+            <tr>
+              <th style="width: 20%;">品號</th>
+              <th style="width: 20%;">品名</th>
+              <th style="width: 8%;">數量</th>
+              <th style="width: 8%;">單價</th>
+              <th style="width: 14%;">小計</th>
+              <th style="width: 30%;">備註</th>
+            </tr>
+          </thead>
+          <tbody>${tableRowsHtml}</tbody>
+        </table>
+        <div style="position: absolute; bottom: 1px; width: 100%;">
+          <table class="no-border" style="width: 100%; font-size: 16px;">
+           <tr>
+             <td style="height: 32px;">填單人員：</td>
+             <td>簽收：</td>
+           </tr>
+           </table>
+          </div>
+      </div>
+    `;
+  }
+
+    const printWindow = window.open("", "_blank");
+    printWindow.document.write(`
+      <html>
+      <head>
+        <title>出貨單</title>
+        <style>
+          @media print {
+            .print-page { page-break-after: always; }
+            table { border-collapse: collapse; width: 100%; }
+            td, th { border: 1px solid black; padding: 4px; } 
+
+            /*這段讓表格無邊眶*/
+            .no-border td, .no-border th{
+              border: none !important;
+            }
+          }
+        </style>
+      </head>
+      <body>${fullContent}</body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
+}
+
+//指定廠商的列印格式
+function printShipmentTable() {
+  const shipment_date = document.getElementById("shipment_date").value;
+  const vendor_name = document.getElementById("customer_select").selectedOptions[0].textContent;
+  const shipment_id = document.getElementById("shipment_id").value;
+  const shipment_note = document.getElementById("shipment_note").value;
+  const rows = document.querySelectorAll("#detailTable tbody tr");
+
+  let tableRowsHtml = "";
+  let total = 0;
+  rows.forEach((row, index) => {
+    const item_code = row.querySelector('select[name="item_code"]').value;
+    const item_name = row.querySelector('input[name="item_name"]').value;
+    const qty = row.querySelector('input[name="qty"]').value;
+    const price = parseFloat(row.querySelector('input[name="price"]').value) || 0;
+    const subtotal = parseFloat(row.querySelector('.subtotal-cell')?.textContent.replace('$', '').trim()) || 0;
+    const note = row.querySelector('input[name="note"]').value;
+    const po_id = row.querySelector('input[name="po_id"]')?.value || "";
+    const order_id = row.querySelector('input[name="order_id"]')?.value || "";
+
+    if (item_code && item_name) {
+      tableRowsHtml += `
+        <tr>
+          <td style="text-align: left;">${item_name}</td>
+          <td style="text-align: right;">${qty}</td>
+          <td style="text-align: right;">${price.toFixed(2)}</td>
+          <td style="text-align: center;">${note}</td>
+          <td style="text-align: center;">${po_id}</td>
+          <td style="text-align: center;">${order_id}</td>
+        </tr>`;
+    }
+  });
+
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(`
+    <html>
+    <head>
+      <title>出貨單</title>
+      <style>
+        body { font-family: "標楷體", PMingLiU, serif; font-size: 18px; color: #000; }
+        table { border-collapse: collapse; width: 100%; }
+        td, th { border: 1px solid #000; padding: 6px; }
+        .no-border td { border: none !important; }
+        .center { text-align: center; }
+        .right { text-align: right; }
+      </style>
+    </head>
+    <body>
+      <div style="text-align: center; font-weight: bold; font-size: 26px;">瑞鑫電子</div>
+      <div class="center" style="font-size: 24px; font-weight: bold; margin: 12px 0;">出貨單</div>
+
+      <table class="no-border" style="font-size: 16px; margin-bottom: 8px;">
+        <tr>
+          <td style="width: 60%;">出貨日期：${shipment_date}</td>
+          <td>出貨單號：${shipment_id}</td>
+        </tr>
+        <tr>
+          <td>客戶名稱：${vendor_name}</td>
+          <td>備註：${shipment_note}</td>
+        </tr>
+      </table>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">品名</th>
+            <th style="width: 10%;">數量</th>
+            <th style="width: 10%;">單價</th>
+            <th style="width: 11%;">備註</th>
+            <th style="width: 22%;">採購單號</th>
+            <th style="width: 22%;">製令單號</th>
+          </tr>
+        </thead>
+        <tbody>${tableRowsHtml}</tbody>
+      </table>
+      <div class="footer" style="position: absolute; bottom: 12px; width: 100%;">
+        <table class="no-border" style="font-size: 16px; width: 100%;">
+          <tr>
+            <td style="width: 33%;">出貨地點：瑞鑫</td>
+            <td style="width: 33%;">驗收簽章：</td>
+            <td style="width: 33%;">簽收：</td>
+          </tr>
+        </table>
+      </div>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
+}
+//另存成PDF檔
+function downloadPDF() {
+  const shipment_date = document.getElementById("shipment_date").value;
+  const vendor_name = document.getElementById("customer_select").selectedOptions[0].textContent;
+  const shipment_id = document.getElementById("shipment_id").value;
+  const shipment_note = document.getElementById("shipment_note").value;
+  const rows = document.querySelectorAll("#detailTable tbody tr");
+
+  const itemsPerPage = 7;
+  const totalPages = Math.ceil(rows.length / itemsPerPage);
+  let fullContent = "";
+
+  for (let page = 0; page < totalPages; page++) {
+    const start = page * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageRows = Array.from(rows).slice(start, end);
+
+    let tableRowsHtml = "";
+    pageRows.forEach(row => {
+      const item_code = row.querySelector('select[name="item_code"]').value;
+      const item_name = row.querySelector('input[name="item_name"]').value;
+      const qty = row.querySelector('input[name="qty"]').value;
+      const price = row.querySelector('input[name="price"]').value;
+      const subtotal = row.querySelector('.subtotal-cell').textContent.replace('$', '').trim();
+      const note = row.querySelector('input[name="note"]').value;
+
+      if (item_name && item_code) {
+        tableRowsHtml += `
+          <tr>
+            <td style="text-align: left;">${item_code}</td>
+            <td style="text-align: left;">${item_name}</td>
+            <td style="text-align: right;">${qty}</td>
+            <td style="text-align: right;">${price}</td>
+            <td style="text-align: right;">$${subtotal}</td>
+            <td style="text-align: center;">${note}</td>
+          </tr>
+        `;
+      }
+    });
+
+    fullContent += `
+      <div class="print-page">
+        <h2 style="text-align: center; font-size: 26px;">瑞鑫電子</h2>
+        <div style="text-align: center;">
+          <span style="font-size: 20px; font-weight: bold; border-bottom: 1px solid #000; display: inline-block; padding-bottom: 4px; width: 100px;">出貨單</span>
+        </div>
+        <table class="no-border" style="margin-top: 12px; margin-bottom: 8px; font-size: 16px; width: 100%;">
+          <tr>
+            <td style="width: 50%;">出貨日期：${shipment_date}</td>
+            <td>出貨單號：${shipment_id}</td>
+          </tr>
+          <tr>
+            <td>客戶名稱：${vendor_name}</td>
+            <td>備註：${shipment_note}</td>
+          </tr>
+        </table>
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px;" border="1">
+          <thead style="background: #eee; text-align: center;">
+            <tr>
+              <th style="width: 20%;">品號</th>
+              <th style="width: 20%;">品名</th>
+              <th style="width: 8%;">數量</th>
+              <th style="width: 8%;">單價</th>
+              <th style="width: 14%;">小計</th>
+              <th style="width: 30%;">備註</th>
+            </tr>
+          </thead>
+          <tbody>${tableRowsHtml}</tbody>
+        </table>
+        <div style="position: absolute; bottom: 1px; width: 100%;">
+          <table class="no-border" style="width: 100%; font-size: 16px;">
+            <tr>
+              <td style="height: 32px;">填單人員：</td>
+              <td>簽收：</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  const printWindow = window.open("", "_blank");
+  printWindow.document.write(`
+    <html>
+    <head>
+      <title>存檔PDF</title>
+      <style>
+        @page {
+          size: 200mm 140mm;
+          margin: 8mm;
+        }
+        body {
+          font-family: 'PMingLiu', '標楷體', serif;
+          font-size: 18px;
+          color: #000;
+        }
+        .print-page {
+          page-break-after: always;
+          position: relative;
+          height: 10.5cm;
+          box-sizing: border-box;
+        }
+        table { border-collapse: collapse; width: 100%; }
+        td, th { border: 1px solid #000; padding: 6px; }
+        .no-border td { border: none !important; }
+      </style>
+    </head>
+    <body>
+      ${fullContent}
+      <script>
+        window.onload = function() {
+          window.print();
+        };
+      <\\/script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+  </script>
+</body>
+</html>
